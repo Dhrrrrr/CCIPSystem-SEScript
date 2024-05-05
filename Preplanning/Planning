@@ -1,0 +1,9 @@
+This will be used to find the impact point of targets
+
+Requirements:
+Be able to both actively track the ground and actively track existing grids, as well as target specific points
+Work in both space and gravity, with an abitrary targetting distance for space, or target a specific point based off DAGGER
+Easy camera setup and movement, based off the camera tracker
+Easy enable and disable, similiar to camera tracker
+Be able to work for: bullets, missile and grids, with equivalent acceleration for each
+Be able to add arbitrary things like height and speeds to help with alternate uses
