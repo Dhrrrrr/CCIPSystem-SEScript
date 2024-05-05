@@ -1,1 +1,24 @@
+Get all the main config (I.E CCIP type (bullet,missile,etc) , speed limit blah blah)
 
+--
+
+Class level info such as height
+
+Program()
+{
+  Locate the DAGGER script block 
+  Collect necessary blocks I.E Camera and turret parts
+
+  Set run speed
+}
+
+Runtime() 
+{
+  Get inputs from users and change system off what their commands are
+  Get DAGGER output
+  Get height/distance from target
+  Calculate any velocity offsets due to both our velocity and the targets velocity
+  Calculate the distance/position the bullet will hit
+  Calculate the angles for the camera to turn to it
+  Use PID to switch camera to the target
+}
