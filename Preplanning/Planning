@@ -7,3 +7,15 @@ Easy camera setup and movement, based off the camera tracker
 Easy enable and disable, similiar to camera tracker
 Be able to work for: bullets, missile and grids, with equivalent acceleration for each
 Be able to add arbitrary things like height and speeds to help with alternate uses
+
+Progress:
+Add all required changable variables
+Get DAGGER feeding info into system
+Set up text panel output for general information from the system
+Set up calculation for standard bullet drop and non-speed limit grid drop
+Set up camera control system and test it operates the same as camera pointer
+Get the camera control to point to the target point
+Test on firing range to make sure targetting is accurate in gravity
+Get grid tracking working
+Test on moving target
+Work on targetting in space and finishing touchs
