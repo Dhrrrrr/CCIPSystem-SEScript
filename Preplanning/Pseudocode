@@ -15,7 +15,7 @@ Program()
 Runtime() 
 {
   Get inputs from users and change system off what their commands are
-  Get DAGGER output
+  Get GFS output
   Get height/distance from target
   Calculate any velocity offsets due to both our velocity and the targets velocity
   Calculate the distance/position the bullet will hit
