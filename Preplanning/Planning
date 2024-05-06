@@ -7,7 +7,7 @@ Easy camera setup and movement, based off the camera tracker
 Easy enable and disable, similiar to camera tracker
 Be able to work for: bullets, missile and grids, with equivalent acceleration for each
 Be able to add arbitrary things like height and speeds to help with alternate uses
-Be able to operate independently of DAGGER as well
+Be able to operate independently of GFS as well
 
 Progress:
 Add all required changable variables
