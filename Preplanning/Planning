@@ -2,7 +2,7 @@ This will be used to find the impact point of targets
 
 Requirements:
 Be able to both actively track the ground and actively track existing grids, as well as target specific points
-Work in both space and gravity, with an abitrary targetting distance for space, or target a specific point based off DAGGER
+Work in both space and gravity, with an abitrary targetting distance for space, or target a specific point based off GFS
 Easy camera setup and movement, based off the camera tracker
 Easy enable and disable, similiar to camera tracker
 Be able to work for: bullets, missile and grids, with equivalent acceleration for each
@@ -11,7 +11,7 @@ Be able to operate independently of GFS as well
 
 Progress:
 Add all required changable variables
-Get DAGGER feeding info into system
+Get GFS feeding info into system
 Set up text panel output for general information from the system
 Set up calculation for standard bullet drop and non-speed limit grid drop
 Set up camera control system and test it operates the same as camera pointer
