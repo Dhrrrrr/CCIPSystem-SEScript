@@ -37,6 +37,7 @@
         bool currInGravity = true;
 
         double dropHeight = 0;
+        double dropHoriztonal = 0;
 
         /// <summary>
         /// Used for deciding if using height or GFS
@@ -160,7 +161,8 @@
 
             line += "Az: " + azAngle + ", Ver: " + vertAngle + Environment.NewLine;
             line += "Targetting Type: " + targettingIdentifier + Environment.NewLine;
-            line += "Height: " + dropHeight + Environment.NewLine;
+            line += "Drop Height: " + dropHeight + Environment.NewLine;
+            line += "Drop Horizontal: " + dropHoriztonal + Environment.NewLine;
             textPanel.WriteText(line);
         }
 
@@ -181,7 +183,14 @@
             else
             {
                 targettingIdentifier = "GFS POSITION";
-                dropHeight = 0;
+
+                // Get required parts for height trig
+                Vector3D distanceVec = GFSPosition - MainControls.Direction.GetPosition();
+                double distance = distanceVec.Length();
+                double angle = CalcAngleBetweenVec(distanceVec, gravVector);
+
+                // Calculate height and assign
+                dropHeight = distance * Math.Cos(MathHelper.ToRadians(angle));
             }
         }
 
