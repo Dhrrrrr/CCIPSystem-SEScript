@@ -11,7 +11,7 @@
         // If the target being dropped is a grid object
         const bool ISGRID = false;
 
-        const bool EFFECTEDBYGRAVITY = false;
+        const bool EFFECTEDBYGRAVITY = true;
         const bool USECOCKPITHEIGHT = false;
 
         const string cockpitName = "Control Seat";
@@ -34,8 +34,14 @@
         const string FIRECONTROLIDENTIFIER = "GFS";
 
         bool currUseCockpitHeight = false;
+        bool currInGravity = true;
 
         double dropHeight = 0;
+
+        /// <summary>
+        /// Used for deciding if using height or GFS
+        /// </summary>
+        string targettingIdentifier = "";
 
         OperationalControlStruct MainControls;
 
@@ -63,7 +69,6 @@
 
             // Set manual use position at start
             currUseCockpitHeight = USECOCKPITHEIGHT;
-
 
             // Check all blocks are collected
             if (startAzimuth != null && startVertical != null && relativeBlock != null && cockpit != null)
@@ -146,8 +151,16 @@
             line += "Current Vertical Speed: " + MainControls.verticalRotation + Environment.NewLine;
             line += "Enabled: " + MainControls.Enabled + Environment.NewLine;
             line += "Collision Position: " + collisionPoint + Environment.NewLine;
-            line += "Target Position: " + GFSPosition + Environment.NewLine;
-            line += "Az: " + azAngle + ", Ver: " + vertAngle;
+
+            // Only add GFS position if needed
+            if (!currUseCockpitHeight)
+            {
+                line += "GFS Target Position: " + GFSPosition + Environment.NewLine;
+            }
+
+            line += "Az: " + azAngle + ", Ver: " + vertAngle + Environment.NewLine;
+            line += "Targetting Type: " + targettingIdentifier + Environment.NewLine;
+            line += "Height: " + dropHeight + Environment.NewLine;
             textPanel.WriteText(line);
         }
 
@@ -156,10 +169,19 @@
         /// </summary>
         public void GetTargetHeight()
         {
+            // Get gravity vector
+            Vector3D gravVector = cockpit.GetNaturalGravity();
+
             // Decides if curr use cockpit
             if (currUseCockpitHeight)
             {
-
+                targettingIdentifier = "COCKPIT HEIGHT";
+                cockpit.TryGetPlanetElevation(MyPlanetElevation.Surface, out dropHeight);
+            }
+            else
+            {
+                targettingIdentifier = "GFS POSITION";
+                dropHeight = 0;
             }
         }
 
@@ -168,9 +190,6 @@
         /// </summary>
         public void CalculateTargetPoint()
         {
-            // Get gravity
-            Vector3D gravityVector = cockpit.GetNaturalGravity();
-
             // Forward direction for bullet drop
             Vector3D forward = MainControls.Direction.WorldMatrix.Forward;
         }
