@@ -1,1 +1,326 @@
+        // Config
+        const float BULLETSPEED = 2500;
 
+        const bool ISMISSILE = false;
+        const float ACCELERATION = 0;
+        const float MAXMISSILESPEED = 0;
+
+        // How far it will calculate the bullet to if not in gravity
+        const int BULLETCOLLIDEDISTANCE = 1500;
+
+        // If the target being dropped is a grid object
+        const bool ISGRID = false;
+
+        const bool EFFECTEDBYGRAVITY = false;
+        const bool USECOCKPITHEIGHT = false;
+
+        const string cockpitName = "Control Seat";
+        const string azimuthName = "Azimuth Rotor";
+        const string verticalName = "Vertical Rotor";
+        const string directionBlockName = "Artillery";
+
+        const string textPanelName = "CCIP Info Panel";
+
+
+
+        // End of config 
+
+        // Class level variables
+        IMyCockpit cockpit;
+        IMyProgrammableBlock GFS;
+
+        IMyTextPanel textPanel;
+
+        const string FIRECONTROLIDENTIFIER = "GFS";
+
+        bool currUseCockpitHeight = false;
+
+        double dropHeight = 0;
+
+        OperationalControlStruct MainControls;
+
+        // Angles for PID Controls
+        float vertAngle, azAngle, prevAzAngle, prevVertAngle, avgAzAngle, avgVerAngle = 0;
+        long angleAzCount, angleVerCount = 0;
+
+        // Targetting position variables
+        Vector3D GFSPosition;
+        Vector3D collisionPoint;
+
+        public Program()
+        {
+            // Collect Relevant block
+            IMyMotorStator startAzimuth = GridTerminalSystem.GetBlockWithName(azimuthName) as IMyMotorStator;
+            IMyMotorStator startVertical = GridTerminalSystem.GetBlockWithName(verticalName) as IMyMotorStator;
+            IMyCubeBlock relativeBlock = GridTerminalSystem.GetBlockWithName(directionBlockName) as IMyCubeBlock;
+
+            cockpit = GridTerminalSystem.GetBlockWithName(cockpitName) as IMyCockpit;
+            textPanel = GridTerminalSystem.GetBlockWithName(textPanelName) as IMyTextPanel;
+
+            // Null value for vector3D positions
+            GFSPosition = new Vector3D(0);
+            collisionPoint = new Vector3D(0);
+
+            // Set manual use position at start
+            currUseCockpitHeight = USECOCKPITHEIGHT;
+
+
+            // Check all blocks are collected
+            if (startAzimuth != null && startVertical != null && relativeBlock != null && cockpit != null)
+            {
+                MainControls.Initialise(startAzimuth, startVertical, relativeBlock);
+            }
+            else
+            {
+                Echo("Missing Blocks");
+                return;
+            }
+
+            // Collect targetting system
+            List<IMyProgrammableBlock> progBlock = new List<IMyProgrammableBlock>();
+            GridTerminalSystem.GetBlocksOfType<IMyProgrammableBlock>(progBlock);
+
+            foreach (var block in progBlock)
+            {
+                string[] splitString = block.CustomData.Split('|');
+
+                if (splitString[0] == FIRECONTROLIDENTIFIER)
+                {
+                    GFS = block;
+                    break;
+                }
+            }
+
+            if (GFS == null)
+            {
+                Echo("Failed to locate targetting system");
+                return;
+            }
+
+            Runtime.UpdateFrequency = UpdateFrequency.Update1;
+        }
+
+        public void Main(string argument, UpdateType updateSource)
+        {
+            // Basic information such as target position to be pulled before main code
+            ParseControllerInfo();
+
+            switch (argument)
+            {
+                case "Switch":
+                    // Disable movement if disabling the cam
+                    if (MainControls.Enabled)
+                    {
+                        ClearMovementInfo();
+                        MainControls.StopMovement();
+                    }
+
+                    MainControls.Enabled = !MainControls.Enabled;
+                    break;
+
+                default:
+                    GetTargetHeight();
+                    CalculateTargetPoint();
+                    break;
+            }
+
+            // Echo current status
+            Echo("CCIP: " + MainControls.Enabled.ToString());
+
+            // Write information to textbox
+            if (textPanel != null)
+            {
+                FillTextPanel();
+            }
+        }
+
+        /// <summary>
+        /// Writes fire control information into users text panel
+        /// </summary>
+        public void FillTextPanel()
+        {
+            // Write info into text panel
+            textPanel.FontColor = Color.Red;
+            string line = "";
+            line += "Current Azimuth Speed: " + MainControls.azimuthRotation + Environment.NewLine;
+            line += "Current Vertical Speed: " + MainControls.verticalRotation + Environment.NewLine;
+            line += "Enabled: " + MainControls.Enabled + Environment.NewLine;
+            line += "Collision Position: " + collisionPoint + Environment.NewLine;
+            line += "Target Position: " + GFSPosition + Environment.NewLine;
+            line += "Az: " + azAngle + ", Ver: " + vertAngle;
+            textPanel.WriteText(line);
+        }
+
+        /// <summary>
+        /// Gets target height, relative to field, sets height to -1 if in space
+        /// </summary>
+        public void GetTargetHeight()
+        {
+            // Decides if curr use cockpit
+            if (currUseCockpitHeight)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Calculates the position of where the bullet is expected to land and save to collision point variable
+        /// </summary>
+        public void CalculateTargetPoint()
+        {
+            // Get gravity
+            Vector3D gravityVector = cockpit.GetNaturalGravity();
+
+            // Forward direction for bullet drop
+            Vector3D forward = MainControls.Direction.WorldMatrix.Forward;
+        }
+
+        /// <summary>
+        /// Returns the collision point of an object without speed limit
+        /// </summary>
+        public void CalculatePointNoLimit()
+        {
+
+        }
+
+        /// <summary>
+        /// Clears class level info
+        /// </summary>
+        public void ClearMovementInfo()
+        {
+            azAngle = 0;
+            avgAzAngle = 0;
+            angleAzCount = 0;
+
+            vertAngle = 0;
+            avgVerAngle = 0;
+            angleVerCount = 0;
+        }
+
+        public struct OperationalControlStruct
+        {
+            public IMyMotorStator Azimuth;
+            public IMyMotorStator Vertical;
+            public IMyCubeBlock Direction;
+            public bool Enabled;
+
+            // Main rotation info
+
+            /// <summary>
+            /// Rotation for azimuth in RPM
+            /// </summary>
+            public float azimuthRotation { get; set; }
+
+            /// <summary>
+            /// Rotation for vertical in RPM
+            /// </summary>
+            public float verticalRotation { get; set; }
+
+            /// <summary>
+            /// Initialise new control system
+            /// </summary>
+            /// <param name="azimuthIns">Azimuth controller</param>
+            /// <param name="verticalIns">Vertical controller</param>
+            /// <param name="directionalBlock">Block that holds direction for system</param>
+            public void Initialise(IMyMotorStator azimuthIns, IMyMotorStator verticalIns, IMyCubeBlock directionalBlock)
+            {
+                azimuthRotation = 0;
+                verticalRotation = 0;
+
+                Azimuth = azimuthIns;
+                Vertical = verticalIns;
+                Direction = directionalBlock;
+                Enabled = false;
+            }
+
+            /// <summary>
+            /// Sets the internal movement variables to true movement
+            /// </summary>
+            public void SetSystemSpeed()
+            {
+                Azimuth.TargetVelocityRPM = azimuthRotation;
+                Vertical.TargetVelocityRPM = verticalRotation;
+            }
+
+            /// <summary>
+            /// Clears internal values and sets true speed
+            /// </summary>
+            public void StopMovement()
+            {
+                azimuthRotation = 0;
+                verticalRotation = 0;
+
+                SetSystemSpeed();
+            }
+        }
+
+        /// <summary>
+        /// Calculate the difference in degrees between two vectors
+        /// </summary>
+        /// <param name="a">First direction vector</param>
+        /// <param name="b">Second direction vector</param>
+        /// <returns></returns>
+        public float CalcAngleBetweenVec(Vector3D a, Vector3D b)
+        {
+            return (float)MathHelper.ToDegrees(Math.Acos(MathHelper.Clamp(a.Dot(b) / Math.Sqrt(a.LengthSquared() * b.LengthSquared()), -1, 1)));
+        }
+
+        /// <summary>
+        /// Projects a 3D vector onto a 2D vector plane/circle using two crossed vectors as its guide
+        /// </summary>
+        /// <param name="x">First cross vector</param>
+        /// <param name="y">Second cross vector</param>
+        /// <param name="projectedVector">Vector being projected onto plane</param>
+        /// <returns></returns>
+        public Vector3D ProjectVectorToPlane(Vector3D x, Vector3D y, Vector3D projectedVector)
+        {
+            Vector3D xVec = Vector3D.ProjectOnVector(ref projectedVector, ref x);
+            Vector3D yVec = Vector3D.ProjectOnVector(ref projectedVector, ref y);
+
+            return (xVec + yVec).Normalized();
+        }
+
+        /// <summary>
+        /// Parses out raw output from GFS system
+        /// </summary>
+        public void ParseControllerInfo()
+        {
+            if (!USECOCKPITHEIGHT)
+            {
+                string[] GFSMainSplit = GFS.CustomData.Split('|');
+
+                // Else statement disable the curr height
+                if (GFSMainSplit.Length == 2)
+                {
+                    string[] GFSInfoSplit = GFSMainSplit[1].Split(',');
+
+                    try
+                    {
+                        string[] splitString = GFSInfoSplit[0].Split(':');
+
+                        if (splitString.Length == 4)
+                        {
+                            string[] secondarySplit1 = splitString[1].Split(' ');
+                            string[] secondarySplit2 = splitString[2].Split(' ');
+                            string[] secondarySplit3 = splitString[3].Split(' ');
+
+                            double x = Convert.ToDouble(secondarySplit1[0]);
+                            double y = Convert.ToDouble(secondarySplit2[0]);
+                            double z = Convert.ToDouble(secondarySplit3[0]);
+
+                            GFSPosition = new Vector3D(x, y, z);
+                            currUseCockpitHeight = false;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        currUseCockpitHeight = true;
+                        return;
+                    }
+                }
+                else
+                {
+                    currUseCockpitHeight = true;
+                }
+            }
+        }
