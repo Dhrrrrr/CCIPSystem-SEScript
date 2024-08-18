@@ -8,6 +8,9 @@
         // How far it will calculate the bullet to if not in gravity
         const int BULLETCOLLIDEDISTANCE = 1500;
 
+        // Speed limit for space engineers @100m/s
+        const float SPEEDLIMIT = 100;
+
         // If the target being dropped is a grid object
         const bool ISGRID = false;
 
@@ -38,6 +41,7 @@
 
         double dropHeight = 0;
         double dropHoriztonal = 0;
+        double dropTime = 0;
 
         /// <summary>
         /// Used for deciding if using height or GFS
@@ -140,6 +144,11 @@
             }
         }
 
+
+
+
+
+
         /// <summary>
         /// Writes fire control information into users text panel
         /// </summary>
@@ -163,8 +172,14 @@
             line += "Targetting Type: " + targettingIdentifier + Environment.NewLine;
             line += "Drop Height: " + dropHeight + Environment.NewLine;
             line += "Drop Horizontal: " + dropHoriztonal + Environment.NewLine;
+            line += "EST Time Till Impact: " + dropTime + "s" + Environment.NewLine;
             textPanel.WriteText(line);
         }
+
+
+
+
+
 
         /// <summary>
         /// Gets target height, relative to field, sets height to -1 if in space
@@ -194,6 +209,11 @@
             }
         }
 
+
+
+
+
+
         /// <summary>
         /// Calculates the position of where the bullet is expected to land and save to collision point variable
         /// </summary>
@@ -201,15 +221,54 @@
         {
             // Forward direction for bullet drop
             Vector3D forward = MainControls.Direction.WorldMatrix.Forward;
+
+            // Calculate total velocity of the system
+            Vector3D observerVelocity = cockpit.GetShipVelocities().LinearVelocity;
+            Vector3D weaponVelocity = forward * BULLETSPEED;
+            Vector3D fullSystemVelocity = weaponVelocity + observerVelocity;
+
+            // Run methods that locate collision point
+            if (!ISGRID && !ISMISSILE)
+            {
+                CalculatePointNoLimit(fullSystemVelocity);
+            }
+            else if (ISGRID)
+            {
+
+            }
+            else if (ISMISSILE)
+            {
+
+            }
+
         }
+
 
         /// <summary>
         /// Returns the collision point of an object without speed limit
         /// </summary>
-        public void CalculatePointNoLimit()
+        public void CalculatePointNoLimit(Vector3D systemSpeed)
         {
+            // Get gravity vector
+            Vector3D gravVector = cockpit.GetNaturalGravity();
 
+            // Get directional speeds
+            Vector3D downwardVector = Vector3D.ProjectOnVector(ref systemSpeed, ref gravVector);
+            Vector3D horizontalVector = systemSpeed - downwardVector;
+
+            // Calculate drop time
+            dropTime = (-downwardVector.Length() + Math.Sqrt((downwardVector.Length() * downwardVector.Length()) + (2 * gravVector.Length() * dropHeight))) / gravVector.Length();
+
+            // Final processing
+            Vector3D horizontalDistanceVec = horizontalVector * dropTime;
+            collisionPoint = MainControls.Direction.GetPosition() + (gravVector.Normalized() * dropHeight) + horizontalDistanceVec;
+            dropHoriztonal = horizontalDistanceVec.Length();
         }
+
+
+
+
+
 
         /// <summary>
         /// Clears class level info
@@ -282,6 +341,11 @@
             }
         }
 
+
+
+
+
+
         /// <summary>
         /// Calculate the difference in degrees between two vectors
         /// </summary>
@@ -292,6 +356,7 @@
         {
             return (float)MathHelper.ToDegrees(Math.Acos(MathHelper.Clamp(a.Dot(b) / Math.Sqrt(a.LengthSquared() * b.LengthSquared()), -1, 1)));
         }
+
 
         /// <summary>
         /// Projects a 3D vector onto a 2D vector plane/circle using two crossed vectors as its guide
@@ -307,6 +372,11 @@
 
             return (xVec + yVec).Normalized();
         }
+
+
+
+
+
 
         /// <summary>
         /// Parses out raw output from GFS system
