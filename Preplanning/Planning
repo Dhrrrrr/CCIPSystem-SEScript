@@ -14,9 +14,9 @@ Add all required changable variables
 #Get GFS feeding info into system
 #Set up text panel output for general information from the system
 Set up calculation for standard bullet drop and non-speed limit grid drop
-Set up camera control system and test it operates the same as camera pointer
-Get the camera control to point to the target point
-Test on firing range to make sure targetting is accurate in gravity
+#Set up camera control system and test it operates the same as camera pointer
+#Get the camera control to point to the target point
+#Test on firing range to make sure targetting is accurate in gravity
 Get grid tracking working
 Test on moving target
 Work on targetting in space and finishing touchs
