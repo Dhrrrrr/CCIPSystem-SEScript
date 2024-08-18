@@ -145,11 +145,16 @@
                     break;
 
                 default:
-                    GetTargetHeight();
-                    CalculateTargetPoint();
-                    CalculateAngles();
-                    CalculateMotorPID();
-                    MainControls.SetSystemSpeed();
+
+                    // Run calculation if enabled
+                    if (MainControls.Enabled)
+                    {
+                        GetTargetHeight();
+                        CalculateTargetPoint();
+                        CalculateAngles();
+                        CalculateMotorPID();
+                        MainControls.SetSystemSpeed();
+                    }
                     break;
             }
 
